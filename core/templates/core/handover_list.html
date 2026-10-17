@@ -1,0 +1,130 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}Task Handover | TeamFlow{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center
+            flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold">Task Handover</h2>
+        <p class="text-secondary mb-0">
+            Track assigned work and backup acceptance.
+        </p>
+    </div>
+
+    <a href="{% url 'handover_create' %}" class="btn btn-primary">
+        + Create Handover
+    </a>
+</div>
+
+{% for message in messages %}
+    <div class="alert alert-info">{{ message }}</div>
+{% endfor %}
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    {% if is_manager %}
+                        <th>Employee</th>
+                    {% endif %}
+                    <th>Task</th>
+                    <th>Leave Dates</th>
+                    <th>Backup</th>
+                    <th>Status</th>
+                    <th>Response</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in handovers %}
+                <tr>
+                    {% if is_manager %}
+                    <td>
+                        {{ item.leave_request.employee.username|default:"Former employee" }}
+                    </td>
+                    {% endif %}
+
+                    <td>
+                        <div class="fw-semibold">{{ item.task.title }}</div>
+                        {% if item.notes %}
+                            <small class="text-secondary">
+                                {{ item.notes|truncatewords:10 }}
+                            </small>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ item.leave_request.start_date|date:"d M Y" }}
+                        – {{ item.leave_request.end_date|date:"d M Y" }}
+                    </td>
+
+                    <td>
+                        {{ item.backup_employee.username|default:"Unassigned" }}
+                    </td>
+
+                    <td>
+                        {% if item.status == "accepted" %}
+                            <span class="badge text-bg-success">Accepted</span>
+                        {% elif item.status == "declined" %}
+                            <span class="badge text-bg-danger">Declined</span>
+                        {% else %}
+                            <span class="badge text-bg-warning">Pending</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if item.backup_employee_id == request.user.id and item.status == "pending" %}
+                            <form method="post"
+                                  action="{% url 'handover_decision' item.pk 'accepted' %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-success btn-sm">
+                                    Accept
+                                </button>
+                            </form>
+
+                            <form method="post"
+                                  action="{% url 'handover_decision' item.pk 'declined' %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-outline-danger btn-sm">
+                                    Decline
+                                </button>
+                            </form>
+                        {% elif item.accepted_at %}
+                            <small class="text-secondary">
+                                {{ item.accepted_at|date:"d M Y, H:i" }}
+                            </small>
+                        {% else %}
+                            <span class="text-secondary small">
+                                No response yet
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="{% if is_manager %}6{% else %}5{% endif %}"
+                        class="text-center text-secondary py-5">
+                        <h5>No handovers yet</h5>
+                        <p>Create a handover for a task that needs coverage.</p>
+                        <a href="{% url 'handover_create' %}"
+                           class="btn btn-primary">
+                            Create Your First Handover
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

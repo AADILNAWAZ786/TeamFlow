@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.log
+
+# Virtual environments
+.venv/
+venv/
+
+# Local databases and uploaded files
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Local demo seed file containing test credentials
+seed_demo.py

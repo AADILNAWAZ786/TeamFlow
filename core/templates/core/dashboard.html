@@ -1,0 +1,99 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}Dashboard | TeamFlow{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center
+            flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold">Team Dashboard</h2>
+        <p class="text-secondary mb-0">
+            Welcome, {{ request.user.username }}!
+        </p>
+    </div>
+
+    <a href="{% url 'leave_create' %}" class="btn btn-primary">
+        + Request Leave
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <a href="{% url 'leave_requests' %}"
+           class="text-decoration-none text-dark">
+            <div class="card stat-card shadow-sm p-4 h-100">
+                <p class="text-secondary">Pending Leave Requests</p>
+                <div class="number">{{ stats.pending_leaves }}</div>
+                <small class="text-primary mt-2">View requests →</small>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm p-4 h-100">
+            <p class="text-secondary">Upcoming Absences</p>
+            <div class="number">{{ stats.upcoming_absences }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card shadow-sm p-4 h-100">
+            <p class="text-secondary">Incomplete Handovers</p>
+            <div class="number text-danger">
+                {{ stats.incomplete_handovers }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="d-flex justify-content-between align-items-center
+                flex-wrap gap-2 mb-2">
+        <h5 class="fw-bold mb-0">Recent Leave Requests</h5>
+        <a href="{% url 'leave_requests' %}"
+           class="btn btn-outline-primary btn-sm">
+            View All
+        </a>
+    </div>
+
+    <p class="text-secondary small">
+        Latest leave requests saved in TeamFlow.
+    </p>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Leave Dates</th>
+                    <th>Status</th>
+                    <th>Handover</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in recent_requests %}
+                <tr>
+                    <td>{{ item.employee }}</td>
+                    <td>{{ item.dates }}</td>
+                    <td>{{ item.status }}</td>
+                    <td>{{ item.handover }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No leave requests available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="alert alert-primary mb-0">
+        <strong>TeamFlow insight:</strong>
+        Check task handover readiness before approving leave.
+    </div>
+</div>
+
+{% endblock %}

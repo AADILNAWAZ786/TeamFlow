@@ -1,0 +1,181 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}Leave Requests | TeamFlow{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center
+            flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold">Leave Requests</h2>
+        <p class="text-secondary mb-0">
+            {% if is_manager %}
+                Review your team's leave requests and handover readiness.
+            {% else %}
+                View and track your leave requests.
+            {% endif %}
+        </p>
+    </div>
+
+    <a href="{% url 'leave_create' %}" class="btn btn-primary">
+        + Request Leave
+    </a>
+</div>
+
+{% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
+        {{ message }}
+    </div>
+{% endfor %}
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    {% if is_manager %}
+                        <th>Employee</th>
+                    {% endif %}
+
+                    <th>Leave Dates</th>
+                    <th>Type</th>
+                    <th>Status</th>
+
+                    {% if is_manager %}
+                        <th>Handover Readiness</th>
+                    {% endif %}
+
+                    <th>Review &amp; AI</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in leave_requests %}
+                <tr>
+                    {% if is_manager %}
+                    <td>
+                        {{ item.employee.username|default:"Former employee" }}
+                    </td>
+                    {% endif %}
+
+                    <td class="text-nowrap">
+                        {{ item.start_date|date:"d M Y" }}
+                        – {{ item.end_date|date:"d M Y" }}
+                    </td>
+
+                    <td>{{ item.get_leave_type_display }}</td>
+
+                    <td>
+                        {% if item.status == "approved" %}
+                            <span class="badge text-bg-success">
+                                Approved
+                            </span>
+                        {% elif item.status == "rejected" %}
+                            <span class="badge text-bg-danger">
+                                Rejected
+                            </span>
+                        {% else %}
+                            <span class="badge text-bg-warning">
+                                Pending
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    {% if is_manager %}
+                    <td>
+                        {% if item.handover_readiness.ready %}
+                            <span class="badge text-bg-success">
+                                {{ item.handover_readiness.label }}
+                            </span>
+                        {% else %}
+                            <span class="badge text-bg-warning">
+                                Needs attention
+                            </span>
+
+                            <div class="small text-secondary mt-2">
+                                Missing handovers:
+                                {{ item.handover_readiness.missing_count }}
+                                <br>
+                                Awaiting acceptance:
+                                {{ item.handover_readiness.waiting_count }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+
+                    <td>
+                        <div class="d-flex flex-wrap gap-2">
+
+                            <!-- AI Feature 2: Explain handover risk -->
+                            <form method="post"
+                                  action="{% url 'ai_risk_explainer' item.pk %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-outline-info btn-sm">
+                                    Explain Risk
+                                </button>
+                            </form>
+
+                            {% if is_manager and item.status == "pending" and item.employee_id != request.user.id %}
+
+                                {% if item.handover_readiness.ready %}
+                                    <form method="post"
+                                          action="{% url 'leave_decision' item.pk 'approved' %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm">
+                                            Approve
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button type="button"
+                                            class="btn btn-success btn-sm"
+                                            disabled
+                                            title="Complete required handovers first">
+                                        Approve
+                                    </button>
+                                {% endif %}
+
+                                <form method="post"
+                                      action="{% url 'leave_decision' item.pk 'rejected' %}">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="btn btn-outline-danger btn-sm">
+                                        Reject
+                                    </button>
+                                </form>
+
+                            {% elif item.reviewed_by %}
+                                <span class="small text-secondary align-self-center">
+                                    Reviewed by {{ item.reviewed_by.username }}
+                                </span>
+                            {% elif not is_manager %}
+                                <span class="small text-secondary align-self-center">
+                                    Awaiting review
+                                </span>
+                            {% endif %}
+
+                        </div>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="{% if is_manager %}6{% else %}4{% endif %}"
+                        class="text-center text-secondary py-5">
+                        <h5>No leave requests yet</h5>
+                        <p>Submit your first request to get started.</p>
+                        <a href="{% url 'leave_create' %}"
+                           class="btn btn-primary">
+                            Request Leave
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

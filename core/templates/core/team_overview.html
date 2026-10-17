@@ -1,0 +1,225 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}Team Overview | TeamFlow{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h2 class="fw-bold">Team Overview</h2>
+    <p class="text-secondary">
+        Monitor your team, leave requests and handover readiness.
+    </p>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <p class="text-secondary mb-2">Employee Profiles</p>
+            <div class="display-6 fw-bold">{{ employee_count }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{% url 'leave_requests' %}"
+           class="text-decoration-none text-dark">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <p class="text-secondary mb-2">Pending Leave Requests</p>
+                <div class="display-6 fw-bold">{{ pending_leave_count }}</div>
+                <small class="text-primary">Review requests →</small>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <p class="text-secondary mb-2">Upcoming Approved Absences</p>
+            <div class="display-6 fw-bold">
+                {{ upcoming_absence_count }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employees -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h5 class="fw-bold mb-3">Employees</h5>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Job Title</th>
+                    <th>Joining Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in employees %}
+                <tr>
+                    <td>{{ profile.employee_id }}</td>
+                    <td>
+                        {{ profile.user.get_full_name|default:profile.user.username }}
+                    </td>
+                    <td>{{ profile.department }}</td>
+                    <td>{{ profile.job_title|default:"—" }}</td>
+                    <td>
+                        {{ profile.date_of_joining|date:"d M Y"|default:"—" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-secondary text-center py-4">
+                        No employee profiles found. New sign-ups will appear
+                        here after their profiles are created.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pending leave requests -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Pending Leave Requests</h5>
+        <a href="{% url 'leave_requests' %}"
+           class="btn btn-outline-primary btn-sm">
+            View All
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Leave Dates</th>
+                    <th>Leave Type</th>
+                    <th>Submitted</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in pending_leaves %}
+                <tr>
+                    <td>
+                        {{ item.employee.username|default:"Former employee" }}
+                    </td>
+                    <td>
+                        {{ item.start_date|date:"d M Y" }}
+                        – {{ item.end_date|date:"d M Y" }}
+                    </td>
+                    <td>{{ item.get_leave_type_display }}</td>
+                    <td>{{ item.created_at|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-secondary text-center py-3">
+                        No pending leave requests.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Upcoming absences -->
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h5 class="fw-bold mb-3">Upcoming Approved Absences</h5>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Leave Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in upcoming_absences %}
+                <tr>
+                    <td>
+                        {{ item.employee.username|default:"Former employee" }}
+                    </td>
+                    <td>{{ item.start_date|date:"d M Y" }}</td>
+                    <td>{{ item.end_date|date:"d M Y" }}</td>
+                    <td>{{ item.get_leave_type_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-secondary text-center py-3">
+                        No upcoming approved absences.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Outstanding handovers -->
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Outstanding Handovers</h5>
+        <a href="{% url 'handover_list' %}"
+           class="btn btn-outline-primary btn-sm">
+            View Handovers
+        </a>
+    </div>
+
+    <p class="text-secondary small">
+        These handovers are pending or declined for current or future leave.
+    </p>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Task</th>
+                    <th>Backup</th>
+                    <th>Leave Starts</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in outstanding_handovers %}
+                <tr>
+                    <td>
+                        {{ item.leave_request.employee.username|default:"Former employee" }}
+                    </td>
+                    <td>{{ item.task.title }}</td>
+                    <td>
+                        {{ item.backup_employee.username|default:"Unassigned" }}
+                    </td>
+                    <td>
+                        {{ item.leave_request.start_date|date:"d M Y" }}
+                    </td>
+                    <td>
+                        {% if item.status == "declined" %}
+                            <span class="badge text-bg-danger">Declined</span>
+                        {% else %}
+                            <span class="badge text-bg-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-secondary text-center py-3">
+                        No outstanding handover responses.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

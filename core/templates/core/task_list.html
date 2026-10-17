@@ -1,0 +1,87 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}My Tasks | TeamFlow{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center
+            flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold">
+            {% if is_manager %}Team Tasks{% else %}My Tasks{% endif %}
+        </h2>
+        <p class="text-secondary mb-0">
+            Keep track of unfinished work and deadlines.
+        </p>
+    </div>
+
+    <a href="{% url 'task_create' %}" class="btn btn-primary">
+        + Create Task
+    </a>
+</div>
+
+{% for message in messages %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endfor %}
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    {% if is_manager %}
+                        <th>Owner</th>
+                    {% endif %}
+                    <th>Due Date</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ task.title }}</div>
+                        {% if task.description %}
+                            <small class="text-secondary">
+                                {{ task.description|truncatewords:12 }}
+                            </small>
+                        {% endif %}
+                    </td>
+
+                    {% if is_manager %}
+                    <td>
+                        {{ task.owner.username|default:"Unassigned" }}
+                    </td>
+                    {% endif %}
+
+                    <td>
+                        {{ task.due_date|date:"d M Y"|default:"No deadline" }}
+                    </td>
+
+                    <td>{{ task.get_priority_display }}</td>
+
+                    <td>{{ task.get_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if is_manager %}5{% else %}4{% endif %}"
+                        class="text-center text-secondary py-5">
+                        <h5>No tasks yet</h5>
+                        <p>Create a task to start tracking your work.</p>
+                        <a href="{% url 'task_create' %}"
+                           class="btn btn-primary">
+                            Create Your First Task
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

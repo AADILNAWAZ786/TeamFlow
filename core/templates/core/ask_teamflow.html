@@ -1,0 +1,59 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}Ask TeamFlow | TeamFlow{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold">Ask TeamFlow</h2>
+    <p class="text-secondary">
+        Ask questions about accessible leave, tasks and handovers.
+    </p>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <form method="post">
+        {% csrf_token %}
+
+        <label for="question" class="form-label fw-semibold">
+            What would you like to know?
+        </label>
+
+        <textarea
+            id="question"
+            name="question"
+            rows="3"
+            maxlength="1000"
+            required
+            class="form-control mb-3"
+            placeholder="e.g. Which of my handovers are still pending?"
+        >{{ question }}</textarea>
+
+        <button type="submit" class="btn btn-primary">
+            Ask TeamFlow
+        </button>
+    </form>
+
+    <div class="small text-secondary mt-3">
+        Try: Which tasks are due during my leave?
+        Or: Which handovers still need acceptance?
+    </div>
+</div>
+
+{% if answer %}
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <h5 class="fw-bold">Answer</h5>
+
+    {% if ai_error %}
+        <div class="alert alert-warning">{{ answer }}</div>
+    {% else %}
+        <div>{{ answer|linebreaks }}</div>
+    {% endif %}
+
+    <p class="text-secondary small mb-0 mt-3">
+        Answers are generated locally from the records available
+        to your account. Verify important information in the app.
+    </p>
+</div>
+{% endif %}
+{% endblock %}

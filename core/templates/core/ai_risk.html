@@ -1,0 +1,54 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}AI Handover Risk | TeamFlow{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold">AI Handover Risk Explainer</h2>
+    <p class="text-secondary">
+        AI analysis of the leave request and its task coverage.
+    </p>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h5>Leave request</h5>
+    <p class="mb-1">
+        Employee:
+        {{ leave.employee.username|default:"Former employee" }}
+    </p>
+    <p class="mb-1">
+        Dates: {{ leave.start_date|date:"d M Y" }}
+        – {{ leave.end_date|date:"d M Y" }}
+    </p>
+    <p class="mb-0">Status: {{ leave.get_status_display }}</p>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+    <h5 class="fw-bold">AI explanation</h5>
+
+    {% if risk_error %}
+        <div class="alert alert-warning">
+            {{ risk_report }}
+        </div>
+    {% else %}
+        <div>{{ risk_report|linebreaks }}</div>
+    {% endif %}
+
+    <p class="small text-secondary mt-3 mb-0">
+        AI-generated guidance may be incorrect. Verify task details
+        and handover status before making a decision.
+    </p>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mt-4">
+    <a href="{% url 'leave_requests' %}"
+       class="btn btn-primary">
+        Back to Leave Requests
+    </a>
+    <a href="{% url 'handover_list' %}"
+       class="btn btn-outline-secondary">
+        View Handovers
+    </a>
+</div>
+{% endblock %}

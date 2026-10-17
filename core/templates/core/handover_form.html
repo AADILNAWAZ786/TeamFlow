@@ -1,0 +1,79 @@
+
+{% extends "core/base.html" %}
+
+{% block title %}Create Handover | TeamFlow{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4 p-4"
+     style="max-width: 850px;">
+
+    <h2 class="fw-bold">Create Task Handover</h2>
+    <p class="text-secondary">
+        Assign your unfinished work to a backup before you go on leave.
+    </p>
+
+    {% if not form.fields.leave_request.queryset.exists %}
+        <div class="alert alert-warning">
+            You need an eligible leave request before creating a handover.
+            Submit a leave request first if you have not done so.
+        </div>
+    {% endif %}
+
+    {% if not form.fields.task.queryset.exists %}
+        <div class="alert alert-warning">
+            You need an unfinished task assigned to you.
+            Create a task first if your task list is empty.
+        </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div class="mb-3">
+            <label for="{{ field.id_for_label }}"
+                   class="form-label fw-semibold">
+                {{ field.label }}
+            </label>
+            {{ field }}
+
+            {% for error in field.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button
+            type="submit"
+            formaction="{% url 'handover_ai_draft' %}"
+            class="btn btn-outline-primary">
+            ✨ Generate AI Draft
+        </button>
+
+        <button type="submit" class="btn btn-primary">
+            Send Handover
+        </button>
+
+        <a href="{% url 'handover_list' %}"
+           class="btn btn-outline-secondary">
+            Cancel
+        </a>
+    </form>
+</div>
+
+<style>
+    input, select, textarea {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
